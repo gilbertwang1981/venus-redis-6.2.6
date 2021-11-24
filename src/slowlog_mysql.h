@@ -7,5 +7,10 @@ int init_mysql_connection(void);
 
 int write_slowlog_into_mysql(slowlogQElement elem);
 
+void close_mysql_connection(void);
+
+int reconnect_to_db(void);
+
+
 #endif
 

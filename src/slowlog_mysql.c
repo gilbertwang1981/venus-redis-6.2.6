@@ -3,8 +3,10 @@
 
 #include <mysql.h>
 #include <stdlib.h>
+#include <errmsg.h>
 
 MYSQL * connection = 0;
+int is_connected = 0;
 
 char * get_env_value_by_name(char * name) {
 	char *env = 0;
@@ -15,7 +17,7 @@ char * get_env_value_by_name(char * name) {
 	return env;
 }
 
-int init_mysql_connection() {
+int reconnect_to_db() {
 	connection = mysql_init(0);
 	if (connection == 0) {
 		return -1;
@@ -26,10 +28,25 @@ int init_mysql_connection() {
     	return -1;
 	}
 
+	is_connected = 1;
+
+	return 0;
+}
+
+int init_mysql_connection() {
+	if (reconnect_to_db() == -1) {
+		return -1;
+	}
+
 	char db_name[VENUS_SLOWLOG_STR_LENGTH] = {0};
 	sprintf(db_name , "use %s" , get_env_value_by_name(VENUS_SLOWLOG_DB_NAME_ENV_VAR));
 
 	if (mysql_query(connection , db_name)) {
+		int err = mysql_errno(connection);
+		if (err == 2013 || (err >= 1158 && err <= 1161)) {
+			close_mysql_connection();
+		}
+		
 		return -1;
 	}
 
@@ -42,6 +59,12 @@ int write_slowlog_into_mysql(slowlogQElement elem) {
 		elem.id , elem.duration , elem.time , elem.peerid , elem.command);
 
 	if (mysql_query(connection , sql)) {
+		int err = mysql_errno(connection);
+		if (err == 2013 || (err >= 1158 && err <= 1161)) {
+			close_mysql_connection();
+			reconnect_to_db();
+		}
+
 		return -1;
 	}
 
@@ -49,8 +72,11 @@ int write_slowlog_into_mysql(slowlogQElement elem) {
 }
 
 void close_mysql_connection() {
-	if (connection != 0) {
+	is_connected = 0;
+
+	if (connection != 0) {		
 		(void)mysql_close(connection);
+		connection = 0;
 	}
 }
 
