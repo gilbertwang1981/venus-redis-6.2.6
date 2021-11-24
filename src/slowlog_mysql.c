@@ -13,6 +13,8 @@ int is_connected = 0;
 char * get_env_value_by_name(char * name) {
 	char *env = 0;
 	if ((env = getenv(name)) == 0) {
+		serverLog(LL_WARNING , "please set env var such as VENUS_SLOWLOG_DB_HOST,VENUS_SLOWLOG_DB_USER_NAME,VENUS_SLOWLOG_DB_PASS,VENUS_SLOWLOG_DB_PORT and VENUS_SLOWLOG_DB_NAME");
+
 		exit(-1);
 	}
 

@@ -8,8 +8,8 @@
 pthread_t slowlog_thread_id;
 
 int start_slowlog_thread() {
-	slowlog_thread_id = pthread_create(&slowlog_thread_id , 0 , run_slowlog_event_loop , 0);
-	if (slowlog_thread_id == -1) {
+	int ret = pthread_create(&slowlog_thread_id , 0 , run_slowlog_event_loop , 0);
+	if (ret == -1) {
 		return -1;
 	}
 

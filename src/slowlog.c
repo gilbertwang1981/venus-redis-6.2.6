@@ -123,6 +123,32 @@ void slowlogInit(void) {
     listSetFreeMethod(server.slowlog,slowlogFreeEntry);
 }
 
+void create_slowlog_into_persistence(robj **argv, int argc , slowlogEntry * entry) {
+	slowlogQElement elem;
+	(void)memset(elem.command , 0x00 , VENUS_SLOWLOG_DB_SQL_LENGTH);
+	int i = 0;
+	for (i = 0;i < argc;i ++) {
+		robj * decoded = getDecodedObject(argv[i]);
+		if ((strlen(decoded->ptr) + strlen(elem.command)) >= (VENUS_SLOWLOG_DB_SQL_LENGTH - 5)) {
+			break;
+		}
+
+		if (i != 0) {
+			strcat(elem.command , " ");
+		}
+
+		strcat(elem.command , decoded->ptr);
+	}
+	
+	elem.id = entry->id;
+	elem.duration = entry->duration;
+	elem.time = entry->time;
+	(void)strcpy(elem.peerid , entry->peerid);
+	if (-1 == putq(&elem)) {
+		serverLog(LL_WARNING , "slowlog put into queue failed.[%ld,%ld,%ld,%s]" , elem.duration , elem.id , elem.time , elem.peerid);
+	}
+}
+
 /* Push a new entry into the slow log.
  * This function will make sure to trim the slow log accordingly to the
  * configured max length. */
@@ -131,29 +157,7 @@ void slowlogPushEntryIfNeeded(client *c, robj **argv, int argc, long long durati
     if (duration >= server.slowlog_log_slower_than) {
 		slowlogEntry * entry = slowlogCreateEntry(c,argv,argc,duration);
 
-		slowlogQElement elem;
-		(void)memset(elem.command , 0x00 , VENUS_SLOWLOG_DB_SQL_LENGTH);
-		int i = 0;
-		for (i = 0;i < argc;i ++) {
-			robj *decoded = getDecodedObject(argv[i]);
-			if ((strlen(decoded->ptr) + strlen(elem.command)) >= (VENUS_SLOWLOG_DB_SQL_LENGTH - 5)) {
-				break;
-			}
-
-			if (i != 0) {
-				strcat(elem.command , " ");
-			}
-
-			strcat(elem.command , decoded->ptr);
-		}
-		
-		elem.id = entry->id;
-		elem.duration = entry->duration;
-		elem.time = entry->time;
-		(void)strcpy(elem.peerid , entry->peerid);
-		if (-1 == putq(&elem)) {
-			serverLog(LL_WARNING , "slowlog put into queue failed.[%ld,%ld,%ld,%s]" , elem.duration , elem.id , elem.time , elem.peerid);
-		}
+		create_slowlog_into_persistence(argv , argc , entry);
 		
 		listAddNodeHead(server.slowlog,entry);
     }
