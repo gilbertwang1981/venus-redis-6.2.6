@@ -2,8 +2,13 @@
 #include "slowlogger_def.h"
 
 #include <mysql.h>
+#include <stdlib.h>
 
 MYSQL * connection = 0;
+
+char * get_env_value_by_name(char * name) {
+	return getenv(name);
+}
 
 int init_mysql_connection() {
 	connection = mysql_init(0);
@@ -11,13 +16,15 @@ int init_mysql_connection() {
 		return -1;
 	}
 
-	if (mysql_real_connect(connection , "rm-wz9z9bk07qr61w1f7.mysql.rds.aliyuncs.com", "root", 
-          "ne2FRwzOQjONzEOmx0oZ4uh9", 0 , 3306 , 0 , 0) == 0) {
+	if (mysql_real_connect(connection , get_env_value_by_name(VENUS_SLOWLOG_DB_HOST_ENV_VAR) , get_env_value_by_name(VENUS_SLOWLOG_DB_USER_NAME_ENV_VAR) , 
+          get_env_value_by_name(VENUS_SLOWLOG_DB_PASS_ENV_VAR) , 0 , atoi(get_env_value_by_name(VENUS_SLOWLOG_DB_PORT_ENV_VAR)) , 0 , 0) == 0) {
     	return -1;
 	}
 
-	if (mysql_query(connection , "use abtest")) {
-		printf("%s\n" , mysql_error(connection));
+	char db_name[VENUS_SLOWLOG_STR_LENGTH] = {0};
+	sprintf(db_name , "use %s" , get_env_value_by_name(VENUS_SLOWLOG_DB_NAME_ENV_VAR));
+
+	if (mysql_query(connection , db_name)) {
 		return -1;
 	}
 
@@ -30,7 +37,6 @@ int write_slowlog_into_mysql(slowlogQElement elem) {
 		elem.id , elem.duration , elem.time , elem.peerid , elem.command);
 
 	if (mysql_query(connection , sql)) {
-		printf("%s\n" , mysql_error(connection));
 		return -1;
 	}
 
