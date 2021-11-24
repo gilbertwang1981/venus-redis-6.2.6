@@ -18,6 +18,8 @@ int msg_queue_id = 0;
 key_t create_key() {
 	key_t key = ftok(VENUS_REDIS_MSGQ_SLOWLOG_NAME , VENUS_REDIS_MSGQ_SLOWLOG_ID);
 	if (-1 == key) {
+		serverLog(LL_WARNING , "create key of the queue failed.");
+		
 		return -1;
 	}
 
