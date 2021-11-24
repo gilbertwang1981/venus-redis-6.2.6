@@ -7,7 +7,12 @@
 MYSQL * connection = 0;
 
 char * get_env_value_by_name(char * name) {
-	return getenv(name);
+	char *env = 0;
+	if ((env = getenv(name)) == 0) {
+		exit(-1);
+	}
+
+	return env;
 }
 
 int init_mysql_connection() {
