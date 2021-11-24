@@ -1,3 +1,5 @@
+#include "server.h"
+
 #include "slowlog_mysql.h"
 #include "slowlogger_def.h"
 
@@ -20,11 +22,15 @@ char * get_env_value_by_name(char * name) {
 int reconnect_to_db() {
 	db_connection = mysql_init(0);
 	if (db_connection == 0) {
+		serverLog(LL_WARNING , "init db connection failed. errno:%d" , mysql_errno(db_connection));
+		
 		return -1;
 	}
 
 	if (mysql_real_connect(db_connection , get_env_value_by_name(VENUS_SLOWLOG_DB_HOST_ENV_VAR) , get_env_value_by_name(VENUS_SLOWLOG_DB_USER_NAME_ENV_VAR) , 
-          get_env_value_by_name(VENUS_SLOWLOG_DB_PASS_ENV_VAR) , 0 , atoi(get_env_value_by_name(VENUS_SLOWLOG_DB_PORT_ENV_VAR)) , 0 , 0) == 0) {		
+          get_env_value_by_name(VENUS_SLOWLOG_DB_PASS_ENV_VAR) , 0 , atoi(get_env_value_by_name(VENUS_SLOWLOG_DB_PORT_ENV_VAR)) , 0 , 0) == 0) {
+        serverLog(LL_WARNING , "connect to db failed. errno:%d" , mysql_errno(db_connection));
+		
     	return -1;
 	}
 
@@ -43,6 +49,7 @@ int init_mysql_connection() {
 
 	if (mysql_query(db_connection , db_name)) {
 		int err = mysql_errno(db_connection);
+		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
 		if (err == 2013 || (err >= 1158 && err <= 1161)) {
 			close_mysql_connection();
 		}
@@ -60,6 +67,7 @@ int write_slowlog_into_mysql(slowlogQElement elem) {
 
 	if (mysql_query(db_connection , sql)) {
 		int err = mysql_errno(db_connection);
+		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
 		if (err == 2013 || (err >= 1158 && err <= 1161)) {
 			close_mysql_connection();
 			reconnect_to_db();

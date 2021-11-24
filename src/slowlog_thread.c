@@ -1,3 +1,4 @@
+#include "server.h"
 #include "slowlog_thread.h"
 #include "slowlogger.h"
 #include "slowlog_mysql.h"
@@ -24,7 +25,7 @@ void * run_slowlog_event_loop(__attribute((unused)) void * args) {
 			usleep(VENUS_REDIS_MSGQ_SLOWLOG_FETCH_USLEEP);
 		} else if (ret == 0) {
 			if (-1 == write_slowlog_into_mysql(element)) {
-				// TODO 
+				serverLog(LL_WARNING , "write slowlog into db failed.");
 			}
 		}
 	}
