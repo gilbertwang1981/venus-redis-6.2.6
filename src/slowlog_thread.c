@@ -24,9 +24,10 @@ void * run_slowlog_event_loop(__attribute((unused)) void * args) {
 		if (1 == (ret = getq(&element))) {
 			usleep(VENUS_REDIS_MSGQ_SLOWLOG_FETCH_USLEEP);
 		} else if (ret == 0) {
-			if (-1 == write_slowlog_into_mysql(element)) {
+			/*if (-1 == write_slowlog_into_mysql(element)) {
 				serverLog(LL_WARNING , "write slowlog into db failed.");
-			}
+			}*/
+			serverLog(LL_NOTICE , "%s" , element.command);
 		}
 	}
 }

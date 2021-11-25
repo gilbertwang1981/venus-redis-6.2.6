@@ -6,6 +6,11 @@
 
 #include "slowlogger_def.h"
 
+typedef struct tag_venus_msg_buffer {
+	long int mtype;
+	char mtext[VENUS_REDIS_MSGQ_SLOWLOG_CONTENT_LENGTH];
+} venus_msg_buf;
+
 typedef struct slowlogQElement {
     long id;       /* Unique entry identifier. */
     long duration; /* Time spent by the query, in microseconds. */

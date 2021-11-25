@@ -11,8 +11,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "zmalloc.h"
-
 int msg_queue_id = 0;
 
 key_t create_key() {
@@ -57,47 +55,32 @@ int putq(slowlogQElement * element) {
 		return -1;
 	}
 
-	struct msgbuf * msgbuf = 0;
+	venus_msg_buf msgbuf;
 	
 	char slowlog[VENUS_REDIS_MSGQ_SLOWLOG_CONTENT_LENGTH] = {0};
-	int length = sprintf(slowlog , "%ld|%ld|%ld|%s|%s" , element->id , element->time , element->duration , element->peerid , element->command);
+	sprintf(slowlog , "%ld|%ld|%ld|%s|%s" , element->id , element->time , element->duration , element->peerid , element->command);
 
-	msgbuf = (struct msgbuf *)zmalloc(sizeof(long) + length);
-	if (msgbuf == 0) {
-		return -1;
-	}
+	(void)memset(msgbuf.mtext , 0x00 , VENUS_REDIS_MSGQ_SLOWLOG_CONTENT_LENGTH);
+	
+	msgbuf.mtype = getpid();
+	(void)strcpy(msgbuf.mtext , slowlog);
 
-	(void)memset(msgbuf , 0x00 , sizeof(long) + length);
-
-	msgbuf->mtype = getpid();
-	(void)strcpy(msgbuf->mtext , slowlog);
-
-	int ret = msgsnd(msg_queue_id , msgbuf, length , IPC_NOWAIT);
+	int ret = msgsnd(msg_queue_id , &msgbuf, sizeof(msgbuf) , IPC_NOWAIT);
 	if (ret == -1) {
-		(void)zfree(msgbuf);
-
 		serverLog(LL_WARNING , "slowlog write into message queue failed. %s" , strerror(errno));
 	
 		return -1;
 	}
-
-	(void)zfree(msgbuf);
-
+	
 	return 0;
 }
 
 int getq(slowlogQElement * element) {
-	struct msgbuf * msgbuf = (struct msgbuf *)zmalloc(sizeof(long) + VENUS_REDIS_MSGQ_SLOWLOG_CONTENT_LENGTH);
-	if (msgbuf == 0) {
-		return -1;
-	}
-	
-	(void)memset(msgbuf , 0x00 , sizeof(long) + VENUS_REDIS_MSGQ_SLOWLOG_CONTENT_LENGTH);
+	venus_msg_buf msgbuf;
+	(void)memset(msgbuf.mtext , 0x00 , VENUS_REDIS_MSGQ_SLOWLOG_CONTENT_LENGTH);
 
-	int ret = msgrcv(msg_queue_id , msgbuf, sizeof(long) + VENUS_REDIS_MSGQ_SLOWLOG_CONTENT_LENGTH , getpid() , IPC_NOWAIT);
+	int ret = msgrcv(msg_queue_id , &msgbuf, sizeof(msgbuf) , getpid() , IPC_NOWAIT);
 	if (ret == -1) {
-		(void)zfree(msgbuf);
-
 		if (errno == ENOMSG) {
 			return 1;
 		}
@@ -105,7 +88,7 @@ int getq(slowlogQElement * element) {
 		return -1;
 	}
 
-	char * ptr = strtok(msgbuf->mtext , "|");
+	char * ptr = strtok(msgbuf.mtext , "|");
 	if (ptr) {
 		element->id = atol(ptr);
 		ptr = strtok(0 , "|");
@@ -123,8 +106,6 @@ int getq(slowlogQElement * element) {
 					if (ptr) {
 						(void)memset(element->command , 0x00 , VENUS_SLOWLOG_DB_SQL_LENGTH);
 						(void)strcpy(element->command , ptr);
-					
-						(void)zfree(msgbuf);
 
 						return 0;
 					}
@@ -132,8 +113,6 @@ int getq(slowlogQElement * element) {
 			}
 		}
 	}
-
-	(void)zfree(msgbuf);
 
 	serverLog(LL_WARNING , "slowlog gets from message queue failed. %s" , strerror(errno));
 
