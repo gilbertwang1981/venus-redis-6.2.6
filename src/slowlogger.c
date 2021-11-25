@@ -47,6 +47,14 @@ int createq() {
 		}
 	}
 
+	struct msqid_ds ds;
+	ds.msg_qbytes = VENUS_MAX_MSG_QUEUE_SIZE;
+	if (-1 == msgctl(msg_queue_id , IPC_SET , &ds)) {
+		serverLog(LL_WARNING , "set msgctl failed. %s" , strerror(errno));
+	
+		return -1;
+	}
+
 	return msg_queue_id;
 }
 

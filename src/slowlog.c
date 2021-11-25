@@ -127,7 +127,7 @@ void create_slowlog_into_persistence(robj **argv, int argc , slowlogEntry * entr
 	slowlogQElement elem;
 	(void)memset(elem.command , 0x00 , VENUS_SLOWLOG_DB_SQL_LENGTH);
 	int i = 0;
-	for (i = 0;i < argc && i < 10;i ++) {
+	for (i = 0;i < argc && i < VENUS_MAX_SLOWLOG_PARAM ;i ++) {
 		robj * decoded = getDecodedObject(argv[i]);
 		if ((strlen(decoded->ptr) + strlen(elem.command)) >= (VENUS_SLOWLOG_DB_SQL_LENGTH - 5)) {
 			break;
