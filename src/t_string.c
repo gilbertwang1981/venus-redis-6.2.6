@@ -29,6 +29,7 @@
 
 #include "server.h"
 #include <math.h> /* isnan(), isinf() */
+#include "slowlogger_def.h"
 
 /* Forward declarations */
 int getGenericCommand(client *c);
@@ -298,6 +299,23 @@ int getGenericCommand(client *c) {
 
 void getCommand(client *c) {
     getGenericCommand(c);
+}
+
+void getslowlog(client *c) {
+	char command[VENUS_REDIS_COMMON_STR_LENGTH] = {0};
+	sprintf(command , "The command is [%s %s %s]" , (char *)(c->argv[0]->ptr) , (char *)(c->argv[1]->ptr) , (char *)(c->argv[2]->ptr) );
+
+    robj *o = createStringObject(command , strlen(command));
+
+    if (checkType(c,o,OBJ_STRING)) {
+		freeStringObject(o);
+		
+        return;
+    }
+
+    addReplyBulk(c,o);
+
+	freeStringObject(o);
 }
 
 /*
