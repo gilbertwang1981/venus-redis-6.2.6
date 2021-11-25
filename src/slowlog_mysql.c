@@ -62,6 +62,41 @@ int init_mysql_connection() {
 	return 0;
 }
 
+int get_slowlog_records(char * slowlogs , long int offset) {
+	char sql[VENUS_SLOWLOG_DB_SQL_LENGTH] = {0};
+	(void)sprintf(sql , "select command , duration from redis_log where id >= %ld limit 50" , offset);
+	if (mysql_query(db_connection , sql)) {
+		int err = mysql_errno(db_connection);
+		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
+		if (err == 2013 || (err >= 1158 && err <= 1161)) {
+			close_mysql_connection();
+			reconnect_to_db();
+		}
+
+		return -1;	
+	}
+
+	MYSQL_RES * result = mysql_store_result(db_connection);
+	if (result) {
+		int num_fields = mysql_num_fields(result);
+		MYSQL_ROW row = 0;
+		int offset = 0;
+		while ((row = mysql_fetch_row(result)) != 0) {
+			int i = 0;
+			for(i = 0;i < num_fields;i++) {
+				offset += sprintf(slowlogs + offset , "%s " , row[i]); 
+			}
+			
+			offset += sprintf(slowlogs + offset , "\n");
+		}
+
+		mysql_free_result(result);
+	}
+	
+	return 0;
+}
+
+
 int write_slowlog_into_mysql(slowlogQElement elem) {
 	char sql[VENUS_SLOWLOG_DB_SQL_LENGTH] = {0};
 	(void)sprintf(sql , "insert into redis_log(entry_id , duration , time , client_id , command) values (%ld,%ld,%ld,\'%s\',\'%s\')" , 

@@ -30,6 +30,7 @@
 #include "server.h"
 #include <math.h> /* isnan(), isinf() */
 #include "slowlogger_def.h"
+#include "slowlog_mysql.h"
 
 /* Forward declarations */
 int getGenericCommand(client *c);
@@ -302,10 +303,11 @@ void getCommand(client *c) {
 }
 
 void getslowlog(client *c) {
-	char command[VENUS_REDIS_COMMON_STR_LENGTH] = {0};
-	sprintf(command , "The command is [%s %s %s]" , (char *)(c->argv[0]->ptr) , (char *)(c->argv[1]->ptr) , (char *)(c->argv[2]->ptr) );
+	char result[VENUS_REDIS_SLOWLOG_RESULT_SIZE] = {0};
 
-    robj *o = createStringObject(command , strlen(command));
+	get_slowlog_records(result , atoi((char *)(c->argv[1]->ptr)));
+
+    robj *o = createStringObject(result , strlen(result));
 
     if (checkType(c,o,OBJ_STRING)) {
 		freeStringObject(o);
