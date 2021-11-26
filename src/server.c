@@ -62,6 +62,7 @@
 #include "slowlogger.h"
 #include "slowlog_thread.h"
 #include "slowlog_mysql.h"
+#include "venus_util.h"
 
 #ifdef __linux__
 #include <sys/mman.h>

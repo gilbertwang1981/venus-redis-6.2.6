@@ -109,8 +109,9 @@ int write_slowlog_into_mysql(slowlogQElement elem) {
 	}
 
 	char sql[VENUS_SLOWLOG_DB_SQL_LENGTH] = {0};
-	(void)sprintf(sql , "insert into venus_redis_slowlog(entry_id , duration , time , ip , port , command , create_time) values (%ld,%ld,%ld,\'%s\',%d,\'%s\',now())" , 
-		elem.id , elem.duration , elem.time , ip , port , elem.command);
+	(void)sprintf(sql , 
+		"insert into venus_redis_slowlog(entry_id , duration , time , ip , port , command , create_time , redis_host , redis_port , redis_run_id , redis_cluster_name , msg_queue_id) values (%ld,%ld,%ld,\'%s\',%d,\'%s\',now(),\'%s\',%d,\'%s\',\'%s\',%d)" , 
+		elem.id , elem.duration , elem.time , ip , port , elem.command , server.venus_redis_server_host , server.port , server.runid , server.venus_redis_cluster_name , server.slowlog_message_queue_id);
 
 	if (mysql_query(db_connection , sql)) {
 		int err = mysql_errno(db_connection);
