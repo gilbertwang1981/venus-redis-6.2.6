@@ -95,8 +95,20 @@ int get_slowlog_records(char * slowlogs , long int offset) {
 	return 0;
 }
 
+int is_enable_db_persistence() {
+	char *env = 0;
+	if ((env = getenv(VENUS_REDIS_ENABLE_PERSISTENCE_ENV_VAR_NAME)) == 0) {
+		return 1;
+	}
+
+	return 0;
+}
 
 int write_slowlog_into_mysql(slowlogQElement elem) {
+	if (is_enable_db_persistence() == 1) {
+		return 0;
+	}
+
 	char * ptr = strtok(elem.peerid , ":");
 	int port = -1;
 	char ip[VENUS_REDIS_COMMON_STR_LENGTH] = {0};

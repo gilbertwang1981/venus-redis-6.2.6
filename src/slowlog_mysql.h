@@ -13,6 +13,8 @@ void close_mysql_connection(void);
 
 int reconnect_to_db(void);
 
+int is_enable_db_persistence(void);
+
 
 #endif
 
