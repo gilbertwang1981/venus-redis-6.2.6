@@ -320,6 +320,19 @@ void getslowlog(client *c) {
 	freeStringObject(o);
 }
 
+void enable_slowlog_persistence(client * c) {
+	int enable = atoi((char *)(c->argv[1]->ptr));
+	if (enable == 1) {
+		server.venus_slowlog_persistence = 1;
+		serverLog(LL_NOTICE , "enable the switch for slowlog persistence.");
+	} else if (enable == 0) {
+		server.venus_slowlog_persistence = 0;
+		serverLog(LL_NOTICE , "disable the switch for slowlog persistence.");
+	}
+
+	addReply(c, shared.ok);
+}
+
 /*
  * GETEX <key> [PERSIST][EX seconds][PX milliseconds][EXAT seconds-timestamp][PXAT milliseconds-timestamp]
  *

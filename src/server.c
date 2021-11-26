@@ -1120,6 +1120,10 @@ struct redisCommand redisCommandTable[] = {
 	{"venus-slowlog-get",getslowlog ,2,
      "read-only fast @string",
      0,NULL,1,1,1,0,0,0},
+
+	{"venus-slowlog-persistence",enable_slowlog_persistence ,2,
+     "read-only fast @string",
+     0,NULL,1,1,1,0,0,0},
 };
 
 /*============================ Utility functions ============================ */
@@ -3366,6 +3370,8 @@ void initServer(void) {
     scriptingInit(1);
     slowlogInit();
     latencyMonitorInit();
+
+	server.venus_slowlog_persistence = 0;
     
     /* Initialize ACL default password if it exists */
     ACLUpdateDefaultUserPassword(server.requirepass);

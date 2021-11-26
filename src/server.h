@@ -1629,6 +1629,7 @@ struct redisServer {
 	char * venus_redis_cluster_name; /* extension field for venus-redis cluster management */
 	int slowlog_message_queue_id; /* slowlog message queue id */
 	char venus_redis_server_host[VENUS_REDIS_COMMON_STR_LENGTH]; /* venus redis server binded address */
+	int venus_slowlog_persistence; /* The swith of the slowlog persistence */
 };
 
 #define MAX_KEYS_BUFFER 256
@@ -2499,6 +2500,7 @@ void setexCommand(client *c);
 void psetexCommand(client *c);
 void getCommand(client *c);
 void getslowlog(client * c);
+void enable_slowlog_persistence(client * c);
 void getexCommand(client *c);
 void getdelCommand(client *c);
 void delCommand(client *c);
