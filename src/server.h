@@ -1624,6 +1624,8 @@ struct redisServer {
                                 * failover then any replica can be used. */
     int target_replica_port; /* Failover target port */
     int failover_state; /* Failover state */
+	char * venus_redis_cluster_name; /* extension field for venus-redis cluster management */
+	int slowlog_message_queue_id; /* slowlog message queue id */
 };
 
 #define MAX_KEYS_BUFFER 256

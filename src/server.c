@@ -6426,9 +6426,12 @@ int main(int argc, char **argv) {
 
 	if (init_mysql_connection() == -1) {
 		serverLog(LL_WARNING , "connect to MYSQL failed. %s" , strerror(errno));
-	} else {
-		serverLog(LL_NOTICE , "connect to MYSQL success.");
+
+		return -1;
 	}
+
+	serverLog(LL_NOTICE , "The redis instance (%s) has been connected to MYSQL,created the message queue (%d) and joined into the cluster (%s)." , 
+		server.runid , server.slowlog_message_queue_id , server.venus_redis_cluster_name);
 
     aeMain(server.el);
     aeDeleteEventLoop(server.el);

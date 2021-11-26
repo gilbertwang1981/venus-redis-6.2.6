@@ -2567,6 +2567,8 @@ standardConfig configs[] = {
     createStringConfig("tls-ciphersuites", NULL, MODIFIABLE_CONFIG, EMPTY_STRING_IS_NULL, server.tls_ctx_config.ciphersuites, NULL, NULL, updateTlsCfg),
 #endif
 
+	createStringConfig("venus-redis-cluster-name", NULL, MODIFIABLE_CONFIG, ALLOW_EMPTY_STRING, server.venus_redis_cluster_name , "", NULL, NULL),
+
     /* NULL Terminator */
     {NULL}
 };

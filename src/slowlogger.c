@@ -76,6 +76,8 @@ int createq() {
 		}
 	}
 
+	server.slowlog_message_queue_id = msg_queue_id;
+
 	struct msqid_ds ds;
 	ds.msg_qbytes = VENUS_MAX_MSG_QUEUE_SIZE;
 	if (-1 == msgctl(msg_queue_id , IPC_SET , &ds)) {
