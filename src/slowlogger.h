@@ -21,6 +21,7 @@ typedef struct slowlogQElement {
 
 key_t create_key(void);
 int createq(void);
+int removeq(void);
 
 int putq(slowlogQElement * element);
 int getq(slowlogQElement * element);

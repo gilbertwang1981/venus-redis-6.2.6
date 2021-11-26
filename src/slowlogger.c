@@ -14,9 +14,21 @@
 int msg_queue_id = 0;
 
 key_t create_key() {
-	key_t key = ftok(VENUS_REDIS_MSGQ_SLOWLOG_NAME , VENUS_REDIS_MSGQ_SLOWLOG_ID);
+	char slowlog_key_name[VENUS_REDIS_COMMON_STR_LENGTH] = {0};
+	sprintf(slowlog_key_name , "%s-%ld" , VENUS_REDIS_MSGQ_SLOWLOG_NAME , time(0));
+
+	int slowlog_key_fd = -1;
+	if (-1 == (slowlog_key_fd = open(slowlog_key_name , O_CREAT|O_RDWR , S_IRWXO))) {
+		serverLog(LL_WARNING , "open file %s failed. errno:%s" , slowlog_key_name , strerror(errno));
+
+		return -1;
+	}
+
+	(void)close(slowlog_key_fd);
+
+	key_t key = ftok(slowlog_key_name , VENUS_REDIS_MSGQ_SLOWLOG_ID);
 	if (-1 == key) {
-		serverLog(LL_WARNING , "create key of the queue failed.");
+		serverLog(LL_WARNING , "create key %s of the queue failed. errno:%s" , slowlog_key_name , strerror(errno));
 		
 		return -1;
 	}
@@ -24,11 +36,28 @@ key_t create_key() {
 	return key;
 }
 
+int removeq() {
+	if (msg_queue_id == -1) {
+		serverLog(LL_WARNING , "message queue has not been created.");
+	
+		return -1;
+	}
+
+	if (-1 == msgctl(msg_queue_id , IPC_RMID , 0)) {
+		serverLog(LL_WARNING , "message queue removes failed. %d,%s" , msg_queue_id , strerror(errno));
+
+		return -1;
+	}
+
+	
+	serverLog(LL_NOTICE , "message queue has been removed success. %d" , msg_queue_id);
+
+	return 0;
+}
+
 int createq() {
 	key_t key = create_key();
 	if (key == -1) {
-		serverLog(LL_WARNING , "create key of message queue failed. %s" , strerror(errno));
-		
 		return -1;
 	}
 	
