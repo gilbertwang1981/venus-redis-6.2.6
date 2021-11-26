@@ -63,7 +63,7 @@ int init_mysql_connection() {
 
 int get_slowlog_records(char * slowlogs , long int offset) {
 	char sql[VENUS_SLOWLOG_DB_SQL_LENGTH] = {0};
-	(void)sprintf(sql , "select command , duration from redis_log where id >= %ld limit 50" , offset);
+	(void)sprintf(sql , "select command , duration from venus_redis_slowlog where id >= %ld limit 50" , offset);
 	if (mysql_query(db_connection , sql)) {
 		int err = mysql_errno(db_connection);
 		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
