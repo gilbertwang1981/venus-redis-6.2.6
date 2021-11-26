@@ -105,7 +105,7 @@ int is_enable_db_persistence() {
 }
 
 int write_slowlog_into_mysql(slowlogQElement elem) {
-	if (is_enable_db_persistence() == 1) {
+	if (is_enable_db_persistence() == 0) {
 		return 0;
 	}
 
