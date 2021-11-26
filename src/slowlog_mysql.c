@@ -6,6 +6,7 @@
 #include <mysql.h>
 #include <stdlib.h>
 #include <errmsg.h>
+#include <string.h> 
 
 MYSQL * db_connection = 0;
 int is_connected = 0;
@@ -98,9 +99,20 @@ int get_slowlog_records(char * slowlogs , long int offset) {
 
 
 int write_slowlog_into_mysql(slowlogQElement elem) {
+	char * ptr = strtok(elem.peerid , ":");
+	int port = -1;
+	char ip[VENUS_REDIS_COMMON_STR_LENGTH] = {0};
+	if (ptr) {
+		(void)strcpy(ip , ptr);
+		ptr = strtok(0 , ":");
+		if (ptr) {
+			port = atoi(ptr);
+		}
+	}
+
 	char sql[VENUS_SLOWLOG_DB_SQL_LENGTH] = {0};
-	(void)sprintf(sql , "insert into redis_log(entry_id , duration , time , client_id , command) values (%ld,%ld,%ld,\'%s\',\'%s\')" , 
-		elem.id , elem.duration , elem.time , elem.peerid , elem.command);
+	(void)sprintf(sql , "insert into venus_redis_slowlog(entry_id , duration , time , ip , port , command , create_time) values (%ld,%ld,%ld,\'%s\',%d,\'%s\',now())" , 
+		elem.id , elem.duration , elem.time , ip , port , elem.command);
 
 	if (mysql_query(db_connection , sql)) {
 		int err = mysql_errno(db_connection);
