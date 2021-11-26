@@ -6166,6 +6166,19 @@ redisTestProc *getTestProcByName(const char *name) {
 }
 #endif
 
+void init_venus_redis_server_addr() {
+	int i = 0;
+	for (i = 0;i < server.bindaddr_count;i ++) {
+		if (strcmp(VENUS_REDIS_SERVER_COMMON_ADDR , server.bindaddr[i]) != 0) {
+			(void)strcpy(server.venus_redis_server_host , server.bindaddr[i]);
+
+			return;
+		}
+	}
+
+	get_local_binded_addr(server.venus_redis_server_host);
+}
+
 int main(int argc, char **argv) {
     struct timeval tv;
     int j;
@@ -6430,8 +6443,10 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-	serverLog(LL_NOTICE , "The redis instance (%s) has been connected to MYSQL,created the message queue (%d) and joined into the cluster (%s)." , 
-		server.runid , server.slowlog_message_queue_id , server.venus_redis_cluster_name);
+	init_venus_redis_server_addr();
+
+	serverLog(LL_NOTICE , "The redis instance (%s) has been connected to MYSQL,created the message queue (%d) and joined into the cluster (%s) , listening at port %s:%d." , 
+		server.runid , server.slowlog_message_queue_id , server.venus_redis_cluster_name , server.venus_redis_server_host , server.port);
 
     aeMain(server.el);
     aeDeleteEventLoop(server.el);

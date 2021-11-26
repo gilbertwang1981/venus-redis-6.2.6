@@ -51,6 +51,8 @@
 #include <lua.h>
 #include <signal.h>
 
+#include "slowlogger_def.h"
+
 #ifdef HAVE_LIBSYSTEMD
 #include <systemd/sd-daemon.h>
 #endif
@@ -1626,6 +1628,7 @@ struct redisServer {
     int failover_state; /* Failover state */
 	char * venus_redis_cluster_name; /* extension field for venus-redis cluster management */
 	int slowlog_message_queue_id; /* slowlog message queue id */
+	char venus_redis_server_host[VENUS_REDIS_COMMON_STR_LENGTH]; /* venus redis server binded address */
 };
 
 #define MAX_KEYS_BUFFER 256
