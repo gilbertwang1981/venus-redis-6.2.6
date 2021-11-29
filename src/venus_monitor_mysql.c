@@ -41,6 +41,10 @@ int init_monitor_mysql_connection() {
 }
 
 int write_monitor_into_mysql(venus_monitor_elem elem) {
+	if (strlen(elem.cluster_name) == 0) {
+		return 0;
+	}
+
 	char sql[VENUS_SLOWLOG_DB_SQL_LENGTH] = {0};
 	(void)sprintf(sql , 
 		"INSERT INTO venus_redis_cluster_instance(cluster_name , instance_host , instance_port , create_time,role) VALUES (\'%s\',\'%s\',%d,now(),%d) ON DUPLICATE KEY UPDATE update_time=now()" , 
