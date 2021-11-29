@@ -25,6 +25,7 @@ CREATE TABLE `venus_redis_cluster_instance` (
 	`cluster_name` VARCHAR(128) NOT NULL DEFAULT '' COMMENT 'redis集群名字，逻辑名',
 	`instance_host` VARCHAR(64) NOT NULL DEFAULT '' COMMENT 'redis实例IP',
 	`instance_port` INT NOT NULL DEFAULT -1 COMMENT '端口',
+	`role` INT NOT NULL DEFAULT -1 COMMENT '角色,0:master 1:slave',
 	`create_time` timestamp not null DEFAULT '0000-00-00 00:00:00' COMMENT '记录创建时间',
 	`update_time` timestamp not null DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
 	`is_deleted` tinyint DEFAULT 0 COMMENT '软删除字段',

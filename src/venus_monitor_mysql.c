@@ -43,8 +43,8 @@ int init_monitor_mysql_connection() {
 int write_monitor_into_mysql(venus_monitor_elem elem) {
 	char sql[VENUS_SLOWLOG_DB_SQL_LENGTH] = {0};
 	(void)sprintf(sql , 
-		"INSERT INTO venus_redis_cluster_instance(cluster_name , instance_host , instance_port , create_time) VALUES (\'%s\',\'%s\',%d,now()) ON DUPLICATE KEY UPDATE update_time=now()" , 
-		elem.cluster_name , elem.host , elem.port);
+		"INSERT INTO venus_redis_cluster_instance(cluster_name , instance_host , instance_port , create_time,role) VALUES (\'%s\',\'%s\',%d,now(),%d) ON DUPLICATE KEY UPDATE update_time=now()" , 
+		elem.cluster_name , elem.host , elem.port , (server.master == server.current_client)?0:1);
 
 	if (mysql_query(db_monitor_connection , sql)) {
 		int err = mysql_errno(db_monitor_connection);
