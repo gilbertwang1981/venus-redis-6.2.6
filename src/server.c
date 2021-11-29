@@ -63,6 +63,7 @@
 #include "slowlog_thread.h"
 #include "slowlog_mysql.h"
 #include "venus_util.h"
+#include "venus_monitor.h"
 
 #ifdef __linux__
 #include <sys/mman.h>
@@ -6454,6 +6455,10 @@ int main(int argc, char **argv) {
 
 	serverLog(LL_NOTICE , "The redis instance (%s) has been connected to MYSQL,created the message queue (%d) and joined into the cluster (%s) , listening at port %s:%d." , 
 		server.runid , server.slowlog_message_queue_id , server.venus_redis_cluster_name , server.venus_redis_server_host , server.port);
+
+	if (-1 == start_monitor_thread()) {
+		serverLog(LL_WARNING , "create venus monitor thread failed.");
+	}
 
     aeMain(server.el);
     aeDeleteEventLoop(server.el);
