@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 
-int start_slowlog_thread();
+int start_slowlog_thread(void);
 
 void * run_slowlog_event_loop(void * args);
 
