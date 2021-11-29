@@ -22,11 +22,12 @@ DROP TABLE IF EXISTS `venus_redis_cluster_instance`;
 
 CREATE TABLE `venus_redis_cluster_instance` (
 	`id` BIGINT PRIMARY KEY AUTO_INCREMENT NOT NULL COMMENT '自增id',
-	`cluster_name` VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'redis集群名字，逻辑名',
+	`cluster_name` VARCHAR(128) NOT NULL DEFAULT '' COMMENT 'redis集群名字，逻辑名',
 	`instance_host` VARCHAR(64) NOT NULL DEFAULT '' COMMENT 'redis实例IP',
 	`instance_port` INT NOT NULL DEFAULT -1 COMMENT '端口',
 	`create_time` timestamp not null DEFAULT '0000-00-00 00:00:00' COMMENT '记录创建时间',
 	`update_time` timestamp not null DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
-	`is_deleted` tinyint DEFAULT 0 COMMENT '软删除字段'
+	`is_deleted` tinyint DEFAULT 0 COMMENT '软删除字段',
+	UNIQUE KEY `venus_check_uidx` (`cluster_name` , `instance_host` , `instance_port`)
 )ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
