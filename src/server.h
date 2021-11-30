@@ -2501,6 +2501,7 @@ void psetexCommand(client *c);
 void getCommand(client *c);
 void getslowlog(client * c);
 void enable_slowlog_persistence(client * c);
+void get_msg_ctl(client * c);
 void getexCommand(client *c);
 void getdelCommand(client *c);
 void delCommand(client *c);

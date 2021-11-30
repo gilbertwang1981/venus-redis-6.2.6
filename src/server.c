@@ -1125,6 +1125,10 @@ struct redisCommand redisCommandTable[] = {
 	{"venus-slowlog-persistence",enable_slowlog_persistence ,2,
      "read-only fast @string",
      0,NULL,1,1,1,0,0,0},
+
+	{"venus-msg-ctl-get", get_msg_ctl ,1,
+     "read-only fast @string",
+     0,NULL,1,1,1,0,0,0},
 };
 
 /*============================ Utility functions ============================ */

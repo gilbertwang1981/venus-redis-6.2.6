@@ -26,5 +26,7 @@ int removeq(void);
 int putq(slowlogQElement * element);
 int getq(slowlogQElement * element);
 
+int getq_status(char * result);
+
 #endif
 

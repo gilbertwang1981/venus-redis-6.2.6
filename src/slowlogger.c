@@ -55,6 +55,24 @@ int removeq() {
 	return 0;
 }
 
+int getq_status(char * result) {
+	struct msqid_ds ds;
+	if (-1 == msgctl(msg_queue_id , IPC_STAT , &ds)) {
+		serverLog(LL_WARNING , "get status of message queue failed, errno:%s" , strerror(errno));
+		
+		return -1;
+	}
+
+	int offset = 0;
+	offset += sprintf(result + offset , "last send time:%ld\n" , ds.msg_stime);
+	offset += sprintf(result + offset , "last recv time:%ld\n" , ds.msg_rtime);
+	offset += sprintf(result + offset , "current number of bytes on queue:%ld\n" , ds.msg_cbytes);
+	offset += sprintf(result + offset , "number of messages in queue:%ld\n" , ds.msg_qnum);
+
+	return 0;
+}
+
+
 int createq() {
 	key_t key = create_key();
 	if (key == -1) {

@@ -31,6 +31,7 @@
 #include <math.h> /* isnan(), isinf() */
 #include "slowlogger_def.h"
 #include "slowlog_mysql.h"
+#include "slowlogger.h"
 
 /* Forward declarations */
 int getGenericCommand(client *c);
@@ -331,6 +332,43 @@ void enable_slowlog_persistence(client * c) {
 	}
 
 	addReply(c, shared.ok);
+}
+
+void get_msg_ctl(client *c) {
+	char result[VENUS_REDIS_SLOWLOG_RESULT_SIZE] = {0};
+
+	robj *o = 0;
+	if (server.slowlog_message_queue_id == -1) {
+		(void)strcpy(result , "message queue id is null.");
+		
+		o = createStringObject(result , strlen(result));
+	
+		addReplyBulk(c,o);
+
+		freeStringObject(o);
+
+		return;
+	}
+
+	if (getq_status(result) == -1) {
+		(void)strcpy(result , "get the status of message queue failed.");
+		
+		o = createStringObject(result , strlen(result));
+	
+		addReplyBulk(c,o);
+
+		freeStringObject(o);
+		
+		return;
+	}
+
+	o = createStringObject(result , strlen(result));
+
+	addReplyBulk(c,o);
+
+	freeStringObject(o);
+
+	return;
 }
 
 /*
