@@ -29,7 +29,7 @@ int init_monitor_mysql_connection() {
 	if (mysql_query(db_monitor_connection , db_name)) {
 		int err = mysql_errno(db_monitor_connection);
 		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
-		if (err == 2013 || (err >= 1158 && err <= 1161)) {
+		if (err == 2013 || (err >= 1158 && err <= 1161) || err == 2006) {
 			close_monitor_mysql_connection();
 		}
 		
@@ -53,7 +53,7 @@ int write_monitor_into_mysql(venus_monitor_elem elem) {
 	if (mysql_query(db_monitor_connection , sql)) {
 		int err = mysql_errno(db_monitor_connection);
 		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
-		if (err == 2013 || (err >= 1158 && err <= 1161)) {
+		if (err == 2013 || (err >= 1158 && err <= 1161) || err == 2006) {
 			close_monitor_mysql_connection();
 			reconnect_to_monitor_db();
 		}

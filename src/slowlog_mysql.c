@@ -51,7 +51,7 @@ int init_mysql_connection() {
 	if (mysql_query(db_connection , db_name)) {
 		int err = mysql_errno(db_connection);
 		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
-		if (err == 2013 || (err >= 1158 && err <= 1161)) {
+		if (err == 2013 || (err >= 1158 && err <= 1161) || err == 2006) {
 			close_mysql_connection();
 		}
 		
@@ -67,7 +67,7 @@ int get_slowlog_records(char * slowlogs , long int offset) {
 	if (mysql_query(db_connection , sql)) {
 		int err = mysql_errno(db_connection);
 		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
-		if (err == 2013 || (err >= 1158 && err <= 1161)) {
+		if (err == 2013 || (err >= 1158 && err <= 1161) || err == 2006) {
 			close_mysql_connection();
 			reconnect_to_db();
 		}
@@ -119,7 +119,7 @@ int write_slowlog_into_mysql(slowlogQElement elem) {
 	if (mysql_query(db_connection , sql)) {
 		int err = mysql_errno(db_connection);
 		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
-		if (err == 2013 || (err >= 1158 && err <= 1161)) {
+		if (err == 2013 || (err >= 1158 && err <= 1161) || err == 2006) {
 			close_mysql_connection();
 			reconnect_to_db();
 		}
