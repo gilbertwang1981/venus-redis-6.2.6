@@ -338,6 +338,10 @@ void venus_db_keepalive(client * c) {
 	slowlogQElement elem;
 	(void)memset(elem.command , 0x00 , VENUS_SLOWLOG_DB_SQL_LENGTH);
 	(void)strcpy(elem.command , VENUS_SLOWLOG_KEEPALIVE_DB_COMMAND_NAME);
+	elem.duration = 0;
+	elem.id = -1;
+	(void)sprintf(elem.peerid , "%s:%d" , server.venus_redis_server_host , server.port);
+	elem.time = time(0);
 	if (-1 == putq(&elem)) {
 		serverLog(LL_WARNING , "keepalive failed, write to message queue failed.");
 		addReply(c , shared.err);
