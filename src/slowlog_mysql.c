@@ -10,6 +10,28 @@
 
 MYSQL * db_connection = 0;
 int is_connected = 0;
+int is_keepalive_slowlog_thread_started = 0;
+pthread_t keepalive_slowlog_thread_id;
+
+int start_keepalive_slowlog_thread() {
+	int ret = pthread_create(&keepalive_slowlog_thread_id , 0 , run_keepalive_slowlog_event_loop , 0);
+	if (ret == -1) {
+		return -1;
+	}
+
+	return 0;
+}
+
+
+void * run_keepalive_slowlog_event_loop(__attribute((unused)) void *args) {
+	while (1) {
+		usleep(VENUS_REDIS_MYSQL_KEEPALVE_INTERVAL);
+
+		if (0 == keep_alive()) {
+			serverLog(LL_NOTICE , "keppalive to MYSQL(SLOWLOGS) success.");
+		}
+	}
+}
 
 char * get_env_value_by_name(char * name) {
 	char *env = 0;
@@ -45,18 +67,59 @@ int init_mysql_connection() {
 		return -1;
 	}
 
+	if (is_keepalive_slowlog_thread_started == 0) {
+		if (start_keepalive_slowlog_thread() == 0) {
+			is_keepalive_slowlog_thread_started = 1;
+		} else {
+			return -1;
+		}
+	}
+
 	char db_name[VENUS_SLOWLOG_STR_LENGTH] = {0};
 	sprintf(db_name , "use %s" , get_env_value_by_name(VENUS_SLOWLOG_DB_NAME_ENV_VAR));
 
 	if (mysql_query(db_connection , db_name)) {
 		int err = mysql_errno(db_connection);
 		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
-		if (err == 2013 || (err >= 1158 && err <= 1161) || err == 2006) {
-			close_mysql_connection();
-		}
 		
 		return -1;
 	}
+
+	return 0;
+}
+
+int keep_alive() {
+	if (is_connected == -1 || db_connection == 0) {
+		if (-1 == reconnect_to_db()) {
+			return -1;
+		}
+	}
+
+	char db_name[VENUS_SLOWLOG_STR_LENGTH] = {0};
+	sprintf(db_name , "use %s" , get_env_value_by_name(VENUS_SLOWLOG_DB_NAME_ENV_VAR));
+
+	if (mysql_query(db_connection , db_name)) {
+		int err = mysql_errno(db_connection);
+		serverLog(LL_WARNING , "executing sql(use db) failed. errno:%d" , err);
+
+		close_mysql_connection();
+		
+		return -1;
+	}
+
+	char sql[VENUS_SLOWLOG_DB_SQL_LENGTH] = {0};
+	(void)sprintf(sql , "select 1");
+	if (mysql_query(db_connection , sql)) {	
+		int err = mysql_errno(db_connection);
+
+		serverLog(LL_WARNING , "executing keepalive sql(%s) failed. errno:%d" , sql , err);
+
+		close_mysql_connection();
+
+		return -1;
+	}
+
+	(void)mysql_free_result(mysql_store_result((MYSQL*)db_connection)); 
 
 	return 0;
 }
@@ -67,10 +130,6 @@ int get_slowlog_records(char * slowlogs , long int offset) {
 	if (mysql_query(db_connection , sql)) {
 		int err = mysql_errno(db_connection);
 		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
-		if (err == 2013 || (err >= 1158 && err <= 1161) || err == 2006) {
-			close_mysql_connection();
-			reconnect_to_db();
-		}
 
 		return -1;	
 	}
@@ -119,10 +178,6 @@ int write_slowlog_into_mysql(slowlogQElement elem) {
 	if (mysql_query(db_connection , sql)) {
 		int err = mysql_errno(db_connection);
 		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
-		if (err == 2013 || (err >= 1158 && err <= 1161) || err == 2006) {
-			close_mysql_connection();
-			reconnect_to_db();
-		}
 
 		return -1;
 	}
