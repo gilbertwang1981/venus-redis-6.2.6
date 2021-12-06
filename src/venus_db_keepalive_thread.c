@@ -48,7 +48,7 @@ void * run_venus_db_keepalive_thread_event_loop(__attribute((unused)) void * arg
 		}
 
 		char command[VENUS_SLOWLOG_STR_LENGTH] = {0};
-		sprintf(command , "venus-db-keepalive");
+		sprintf(command , "venus-db-keepalive\r\n");
 		if(send(sock , command , strlen(command) , 0) == -1) {
 			serverLog(LL_WARNING , "send keepalive to redis failed. %s" , strerror(errno));
 		

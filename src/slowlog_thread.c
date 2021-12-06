@@ -28,6 +28,8 @@ void * run_slowlog_event_loop(__attribute((unused)) void * args) {
 			if (strcmp(element.command , VENUS_SLOWLOG_KEEPALIVE_DB_COMMAND_NAME) == 0) {
 				if (-1 == keep_alive()) {
 					serverLog(LL_WARNING , "keepalive to MYSQL(SLOWLOG) failed.");
+				} else {
+					serverLog(LL_NOTICE , "keepalive to MYSQL(SLOWLOG) success.");
 				}
 			} else if (-1 == write_slowlog_into_mysql(element)) {
 				serverLog(LL_WARNING , "write slowlog into db failed.");
