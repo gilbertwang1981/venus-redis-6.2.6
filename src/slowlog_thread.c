@@ -2,6 +2,7 @@
 #include "slowlog_thread.h"
 #include "slowlogger.h"
 #include "slowlog_mysql.h"
+#include "venus_db_keepalive_thread.h"
 
 #include <unistd.h>
 
@@ -24,7 +25,11 @@ void * run_slowlog_event_loop(__attribute((unused)) void * args) {
 		if (1 == (ret = getq(&element))) {
 			usleep(VENUS_REDIS_MSGQ_SLOWLOG_FETCH_USLEEP);
 		} else if (ret == 0) {
-			if (-1 == write_slowlog_into_mysql(element)) {
+			if (strcmp(element.command , VENUS_SLOWLOG_KEEPALIVE_DB_COMMAND_NAME) == 0) {
+				if (-1 == keep_alive()) {
+					serverLog(LL_WARNING , "keepalive to MYSQL(SLOWLOG) failed.");
+				}
+			} else if (-1 == write_slowlog_into_mysql(element)) {
 				serverLog(LL_WARNING , "write slowlog into db failed.");
 			}
 		}

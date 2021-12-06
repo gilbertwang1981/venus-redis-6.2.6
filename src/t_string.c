@@ -335,9 +335,15 @@ void enable_slowlog_persistence(client * c) {
 }
 
 void venus_db_keepalive(client * c) {
-	keep_alive();
-
-	addReply(c, shared.ok);	
+	slowlogQElement elem;
+	(void)memset(elem.command , 0x00 , VENUS_SLOWLOG_DB_SQL_LENGTH);
+	(void)strcpy(elem.command , VENUS_SLOWLOG_KEEPALIVE_DB_COMMAND_NAME);
+	if (-1 == putq(&elem)) {
+		serverLog(LL_WARNING , "keepalive failed, write to message queue failed.");
+		addReply(c , shared.err);
+	} else {
+		addReply(c, shared.ok);	
+	}
 }
 
 void get_msg_ctl(client *c) {
