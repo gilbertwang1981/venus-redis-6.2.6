@@ -15,10 +15,6 @@ int reconnect_to_db(void);
 
 int is_enable_db_persistence(void);
 
-int start_keepalive_slowlog_thread(void); 
-
-void * run_keepalive_slowlog_event_loop(void *args);
-
 int keep_alive(void);
 
 #endif

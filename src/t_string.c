@@ -334,6 +334,12 @@ void enable_slowlog_persistence(client * c) {
 	addReply(c, shared.ok);
 }
 
+void venus_db_keepalive(client * c) {
+	keep_alive();
+
+	addReply(c, shared.ok);	
+}
+
 void get_msg_ctl(client *c) {
 	char result[VENUS_REDIS_SLOWLOG_RESULT_SIZE] = {0};
 

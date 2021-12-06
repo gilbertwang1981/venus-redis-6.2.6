@@ -64,6 +64,7 @@
 #include "slowlog_mysql.h"
 #include "venus_util.h"
 #include "venus_monitor.h"
+#include "venus_db_keepalive_thread.h"
 
 #ifdef __linux__
 #include <sys/mman.h>
@@ -1127,6 +1128,10 @@ struct redisCommand redisCommandTable[] = {
      0,NULL,1,1,1,0,0,0},
 
 	{"venus-msg-ctl-get", get_msg_ctl ,1,
+     "read-only fast @string",
+     0,NULL,1,1,1,0,0,0},
+
+	{"venus-db-keepalive", venus_db_keepalive ,1,
      "read-only fast @string",
      0,NULL,1,1,1,0,0,0},
 };
@@ -6462,6 +6467,10 @@ int main(int argc, char **argv) {
 
 	if (-1 == start_monitor_thread()) {
 		serverLog(LL_WARNING , "create venus monitor thread failed.");
+	}
+
+	if (-1 == start_venus_db_keepalive_thread()) {
+		serverLog(LL_WARNING , "create venus db keepalive thread failed.");
 	}
 
     aeMain(server.el);

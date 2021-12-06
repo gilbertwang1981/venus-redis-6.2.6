@@ -10,28 +10,6 @@
 
 MYSQL * db_connection = 0;
 int is_connected = 0;
-int is_keepalive_slowlog_thread_started = 0;
-pthread_t keepalive_slowlog_thread_id;
-
-int start_keepalive_slowlog_thread() {
-	int ret = pthread_create(&keepalive_slowlog_thread_id , 0 , run_keepalive_slowlog_event_loop , 0);
-	if (ret == -1) {
-		return -1;
-	}
-
-	return 0;
-}
-
-
-void * run_keepalive_slowlog_event_loop(__attribute((unused)) void *args) {
-	while (1) {
-		usleep(VENUS_REDIS_MYSQL_KEEPALVE_INTERVAL);
-
-		if (0 == keep_alive()) {
-			serverLog(LL_NOTICE , "keppalive to MYSQL(SLOWLOGS) success.");
-		}
-	}
-}
 
 char * get_env_value_by_name(char * name) {
 	char *env = 0;
@@ -65,14 +43,6 @@ int reconnect_to_db() {
 int init_mysql_connection() {
 	if (reconnect_to_db() == -1) {
 		return -1;
-	}
-
-	if (is_keepalive_slowlog_thread_started == 0) {
-		if (start_keepalive_slowlog_thread() == 0) {
-			is_keepalive_slowlog_thread_started = 1;
-		} else {
-			return -1;
-		}
 	}
 
 	char db_name[VENUS_SLOWLOG_STR_LENGTH] = {0};
