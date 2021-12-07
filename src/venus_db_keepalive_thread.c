@@ -58,8 +58,6 @@ void * run_venus_db_keepalive_thread_event_loop(__attribute((unused)) void * arg
 		}
 
 		close(sock);
-
-		serverLog(LL_NOTICE , "send keepalive to MYSQL(SLOWLOG).");
 	}
 
 	return 0;

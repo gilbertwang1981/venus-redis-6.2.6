@@ -27,8 +27,7 @@ int init_monitor_mysql_connection() {
 	sprintf(db_name , "use %s" , get_monitor_env_value_by_name(VENUS_MONITOR_DB_NAME_ENV_VAR));
 
 	if (mysql_query(db_monitor_connection , db_name)) {
-		int err = mysql_errno(db_monitor_connection);
-		serverLog(LL_WARNING , "executing sql(use db) failed. errno:%d" , err);
+		serverLog(LL_WARNING , "executing sql(use db) failed. errno:%d" , mysql_errno(db_monitor_connection));
 		
 		close_monitor_mysql_connection();
 		
@@ -50,8 +49,7 @@ int write_monitor_into_mysql(venus_monitor_elem elem) {
 		elem.cluster_name , elem.host , elem.port , (server.master == server.current_client)?0:1,(server.master == server.current_client)?0:1);
 
 	if (mysql_query(db_monitor_connection , sql)) {
-		int err = mysql_errno(db_monitor_connection);
-		serverLog(LL_WARNING , "executing sql(%s) failed. errno:%d" , sql , err);
+		serverLog(LL_WARNING , "executing sql(%s) failed. errno:%d" , sql , mysql_errno(db_monitor_connection));
 	
 		close_monitor_mysql_connection();
 		reconnect_to_monitor_db();

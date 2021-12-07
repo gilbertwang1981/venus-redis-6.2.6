@@ -49,8 +49,7 @@ int init_mysql_connection() {
 	sprintf(db_name , "use %s" , get_env_value_by_name(VENUS_SLOWLOG_DB_NAME_ENV_VAR));
 
 	if (mysql_query(db_connection , db_name)) {
-		int err = mysql_errno(db_connection);
-		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
+		serverLog(LL_WARNING , "executing sql(use db) failed. errno:%d" , mysql_errno(db_connection));
 		
 		return -1;
 	}
@@ -69,8 +68,7 @@ int keep_alive() {
 	sprintf(db_name , "use %s" , get_env_value_by_name(VENUS_SLOWLOG_DB_NAME_ENV_VAR));
 
 	if (mysql_query(db_connection , db_name)) {
-		int err = mysql_errno(db_connection);
-		serverLog(LL_WARNING , "executing sql(use db) failed. errno:%d" , err);
+		serverLog(LL_WARNING , "executing sql(use db) failed. errno:%d" , mysql_errno(db_connection));
 
 		close_mysql_connection();
 		
@@ -80,9 +78,7 @@ int keep_alive() {
 	char sql[VENUS_SLOWLOG_DB_SQL_LENGTH] = {0};
 	(void)sprintf(sql , "select 1");
 	if (mysql_query(db_connection , sql)) {	
-		int err = mysql_errno(db_connection);
-
-		serverLog(LL_WARNING , "executing keepalive sql(%s) failed. errno:%d" , sql , err);
+		serverLog(LL_WARNING , "executing keepalive sql(%s) failed. errno:%d" , sql , mysql_errno(db_connection));
 
 		close_mysql_connection();
 
@@ -95,16 +91,44 @@ int keep_alive() {
 }
 
 int get_slowlog_records(char * slowlogs , long int offset) {
+	MYSQL * db_conn = mysql_init(0);
+	if (db_conn == 0) {
+		serverLog(LL_WARNING , "init db connection failed. errno:%d" , mysql_errno(db_conn));
+		
+		return -1;
+	}
+
+	if (mysql_real_connect(db_conn , get_env_value_by_name(VENUS_SLOWLOG_DB_HOST_ENV_VAR) , get_env_value_by_name(VENUS_SLOWLOG_DB_USER_NAME_ENV_VAR) , 
+          get_env_value_by_name(VENUS_SLOWLOG_DB_PASS_ENV_VAR) , 0 , atoi(get_env_value_by_name(VENUS_SLOWLOG_DB_PORT_ENV_VAR)) , 0 , 0) == 0) {
+        serverLog(LL_WARNING , "connect to db failed. errno:%d" , mysql_errno(db_conn));
+
+		(void)mysql_close(db_conn);
+		
+    	return -1;
+	}
+
+	char db_name[VENUS_SLOWLOG_STR_LENGTH] = {0};
+	sprintf(db_name , "use %s" , get_env_value_by_name(VENUS_SLOWLOG_DB_NAME_ENV_VAR));
+
+	if (mysql_query(db_conn , db_name)) {
+		serverLog(LL_WARNING , "executing sql(use db) failed. errno:%d" , mysql_errno(db_conn));
+
+		(void)mysql_close(db_conn);
+		
+		return -1;
+	}
+
 	char sql[VENUS_SLOWLOG_DB_SQL_LENGTH] = {0};
 	(void)sprintf(sql , "select command , duration from venus_redis_slowlog where id >= %ld limit 50" , offset);
-	if (mysql_query(db_connection , sql)) {
-		int err = mysql_errno(db_connection);
-		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
+	if (mysql_query(db_conn , sql)) {
+		serverLog(LL_WARNING , "executing sql(%s) failed. errno:%d" , sql , mysql_errno(db_conn));
+
+		(void)mysql_close(db_conn);
 
 		return -1;	
 	}
 
-	MYSQL_RES * result = mysql_store_result(db_connection);
+	MYSQL_RES * result = mysql_store_result(db_conn);
 	if (result) {
 		int num_fields = mysql_num_fields(result);
 		MYSQL_ROW row = 0;
@@ -118,8 +142,10 @@ int get_slowlog_records(char * slowlogs , long int offset) {
 			offset += sprintf(slowlogs + offset , "\n");
 		}
 
-		mysql_free_result(result);
+		(void)mysql_free_result(result);
 	}
+
+	(void)mysql_close(db_conn);
 	
 	return 0;
 }
@@ -146,8 +172,7 @@ int write_slowlog_into_mysql(slowlogQElement elem) {
 		elem.id , elem.duration , elem.time , ip , port , elem.command , server.venus_redis_server_host , server.port , server.runid , server.venus_redis_cluster_name , server.slowlog_message_queue_id);
 
 	if (mysql_query(db_connection , sql)) {
-		int err = mysql_errno(db_connection);
-		serverLog(LL_WARNING , "executing sql failed. errno:%d" , err);
+		serverLog(LL_WARNING , "executing sql failed. errno:%d" , mysql_errno(db_connection));
 
 		return -1;
 	}
