@@ -81,6 +81,8 @@ int reconnect_to_monitor_db() {
 	if (mysql_real_connect(db_monitor_connection , get_monitor_env_value_by_name(VENUS_MONITOR_DB_HOST_ENV_VAR) , get_monitor_env_value_by_name(VENUS_MONITOR_DB_USER_NAME_ENV_VAR) , 
           get_monitor_env_value_by_name(VENUS_MONITOR_DB_PASS_ENV_VAR) , 0 , atoi(get_monitor_env_value_by_name(VENUS_MONITOR_DB_PORT_ENV_VAR)) , 0 , 0) == 0) {
         serverLog(LL_WARNING , "connect to db failed. errno:%d" , mysql_errno(db_monitor_connection));
+
+		close_monitor_mysql_connection();
 		
     	return -1;
 	}

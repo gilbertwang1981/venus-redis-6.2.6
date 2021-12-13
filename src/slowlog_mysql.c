@@ -31,6 +31,8 @@ int reconnect_to_db() {
 	if (mysql_real_connect(db_connection , get_env_value_by_name(VENUS_SLOWLOG_DB_HOST_ENV_VAR) , get_env_value_by_name(VENUS_SLOWLOG_DB_USER_NAME_ENV_VAR) , 
           get_env_value_by_name(VENUS_SLOWLOG_DB_PASS_ENV_VAR) , 0 , atoi(get_env_value_by_name(VENUS_SLOWLOG_DB_PORT_ENV_VAR)) , 0 , 0) == 0) {
         serverLog(LL_WARNING , "connect to db failed. errno:%d" , mysql_errno(db_connection));
+
+		close_mysql_connection();
 		
     	return -1;
 	}
@@ -172,7 +174,9 @@ int write_slowlog_into_mysql(slowlogQElement elem) {
 		elem.id , elem.duration , elem.time , ip , port , elem.command , server.venus_redis_server_host , server.port , server.runid , server.venus_redis_cluster_name , server.slowlog_message_queue_id);
 
 	if (mysql_query(db_connection , sql)) {
-		serverLog(LL_WARNING , "executing sql failed. errno:%d" , mysql_errno(db_connection));
+		serverLog(LL_WARNING , "executing sql(%s) failed. errno:%d" , sql , mysql_errno(db_connection));
+
+		close_mysql_connection();
 
 		return -1;
 	}

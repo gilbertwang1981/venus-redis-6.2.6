@@ -344,8 +344,11 @@ void venus_db_keepalive(client * c) {
 	elem.time = time(0);
 	if (-1 == putq(&elem)) {
 		serverLog(LL_WARNING , "keepalive failed, write to message queue failed.");
+
 		addReply(c , shared.err);
 	} else {
+		serverLog(LL_NOTICE , "keepalive success.");
+		
 		addReply(c, shared.ok);	
 	}
 }
