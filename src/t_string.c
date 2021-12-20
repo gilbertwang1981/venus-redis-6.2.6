@@ -334,6 +334,23 @@ void enable_slowlog_persistence(client * c) {
 	addReply(c, shared.ok);
 }
 
+void get_slowlog_persistence(client * c) {
+	char result[VENUS_REDIS_COMMON_STR_LENGTH] = {0};
+	(void)sprintf(result , "sw:%d" , server.venus_slowlog_persistence);
+
+	robj * o = createStringObject(result , strlen(result));
+
+    if (checkType(c,o,OBJ_STRING)) {
+		freeStringObject(o);
+		
+        return;
+    }
+
+    addReplyBulk(c,o);
+
+	freeStringObject(o);
+}
+
 void venus_db_keepalive(client * c) {
 	slowlogQElement elem;
 	(void)memset(elem.command , 0x00 , VENUS_SLOWLOG_DB_SQL_LENGTH);
